@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>链式调用</title>
+</head>
+<body>
+	<script>
+		/**
+		 * 链式调用
+		 * @param  {[string]} name [姓名]
+		 * @return {[object]}      [当前实例化后的对象]
+		 */
+		let person = function(name){
+			let self = this;
+			//创建任务队列
+			this.task = [];
+			let fn = function(){
+				console.log(name);
+				self.next();
+			}
+			//将第一个任务添加到任务队列里面
+			self.task.push(fn);
+			//关键点：setTimeout将会被放置异步队列里面（js属于单线程，主线程任务完成后，才去执行异步队列里面任务）
+			setTimeout(function(){
+				self.next();
+			},0);
+			//返回当前实例化对象
+			return this;
+		}
+
+		person.prototype.sleep = function(timer){
+			let self = this;
+			let fn = function(){
+				setTimeout(function(){
+					console.log(timer+'秒后');
+					self.next();
+				},timer*1000);
+			}
+			self.task.push(fn);
+			//返回当前实例化对象的原型
+			return this;
+		}
+
+		person.prototype.eat = function(food){
+			let self = this;
+			let fn = function(){
+				console.log('我吃了'+food);
+				self.next();
+			}
+			self.task.push(fn);
+			return this;
+		}
+
+		person.prototype.next = function(){
+			//拿出任务队列里面第一个任务
+			let job = this.task.shift();
+			//任务存在并执行
+			job && job();
+		}
+
+		//实例化person
+		new person('小明').sleep(2).eat('香蕉').sleep(2).eat('苹果');
+	</script>
+</body>
+</html>
